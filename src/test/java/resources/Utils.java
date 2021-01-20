@@ -12,27 +12,26 @@ import io.restassured.builder.ResponseSpecBuilder;
 import io.restassured.filter.log.RequestLoggingFilter;
 import io.restassured.filter.log.ResponseLoggingFilter;
 import io.restassured.http.ContentType;
+import io.restassured.path.json.JsonPath;
+import io.restassured.response.Response;
 import io.restassured.specification.RequestSpecification;
 import io.restassured.specification.ResponseSpecification;
 
 public class Utils {
-	RequestSpecification req;
+	public static RequestSpecification req;
 	ResponseSpecification resspec;
 	
 	public RequestSpecification requestSpecification() throws IOException
 	{
-		PrintStream log;
-		try {
-			log = new PrintStream(new FileOutputStream("logging.txt"));
+		 if(req==null)
+		 {
+			 PrintStream log = new PrintStream(new FileOutputStream("logging.txt"));
 			req =new RequestSpecBuilder().setBaseUri(getGlobalProperty()).addQueryParam("key", "qaclick123")
 					 .addFilter(RequestLoggingFilter.logRequestTo(log))
 					 .addFilter(ResponseLoggingFilter.logResponseTo(log))
 					   .setContentType(ContentType.JSON).build();
-		} catch (FileNotFoundException e) {
-			
-			e.printStackTrace();
-		}
-		
+					return req;
+		 }
 		 return req;
 	}
 	
@@ -57,5 +56,21 @@ public class Utils {
 		return key;
 		
 	}
+	
+	public String getJSpath(Response response, String key)
+	{
+		
+		String resp = response.asString();    	
+    	JsonPath js = new JsonPath(resp);
+    	return js.get(key).toString();
+	}
+	
+	
+	
+	
+	
+	
+	
+	
 
 }

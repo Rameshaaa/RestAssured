@@ -1,5 +1,6 @@
 package stepDefinitions;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import static org.junit.Assert.*;
@@ -15,6 +16,7 @@ import io.restassured.specification.ResponseSpecification;
 import static io.restassured.RestAssured.*;
 import pojo.AddPlace;
 import pojo.Location;
+import resources.APIresources;
 import resources.Utils;
 import testData.TestDataBuild;
 import io.cucumber.java.en.And;
@@ -30,20 +32,27 @@ public class stepDefinition extends Utils {
 	
 		RequestSpecification res;
 		Response response;
+		static String place_id;
 
-	    @Given("^Add Place payload$")
-	    public void add_place_payload() throws Throwable 
+		 @Given("^Add Place payload with \"([^\"]*)\" \"([^\"]*)\" \"([^\"]*)\"$")
+		    public void add_place_payload_with_something_something_something(String name, String language, String address) throws IOException
 	   
 	    {	   
-		   res=given().spec(requestSpecification()).body(ap.AddPlacePayloadData());
+		   res=given().spec(requestSpecification()).body(ap.AddPlacePayloadData(name, language, address));
   
 	    }
 
-	    @When("^User calls \"([^\"]*)\" with Post http request$")
-	    public void user_calls_something_with_post_http_request(String strArg1) throws Throwable {
+		 @When("^User calls \"([^\"]*)\" with \"([^\"]*)\" http request$")
+		    public void user_calls_something_with_something_http_request(String resources, String method) throws Throwable {
+		   
+	    	APIresources AddplaceResource=APIresources.valueOf(resources);
+	    	System.out.println(AddplaceResource.getresources());
 	    	
-	    	response =res.when().post("/maps/api/place/add/json").
-					   then().spec(responseSpecification()).extract().response();
+	    	if(method.equalsIgnoreCase("POST"))
+	    	response =res.when().post(AddplaceResource.getresources());
+	    	else if(method.equalsIgnoreCase("GET"))
+	    		response =res.when().get(AddplaceResource.getresources());
+	    		
 	    }
 
 	    @Then("^API call got success message with Status code 200$")
@@ -53,12 +62,27 @@ public class stepDefinition extends Utils {
 
 	    @And("^\"([^\"]*)\" in response body is \"([^\"]*)\"$")
 	    public void something_in_response_body_is_something(String KeyValue, String ExpectedValue) throws Throwable {
-	        
-	    	String resp = response.asString();
-	    	System.out.println(resp+"output AT 81 LINE");
-	    	JsonPath js = new JsonPath(resp);
-	    	System.out.println(js.get(KeyValue).toString());
-	    	assertEquals(js.get(KeyValue).toString(),ExpectedValue);
+	           	
+	    	System.out.println(KeyValue);
+	    	System.out.println(ExpectedValue);
+	    	assertEquals(getJSpath(response, KeyValue),ExpectedValue);
+	    }
+	    
+	    @And("^verify place_id created maps to \"([^\"]*)\" using \"([^\"]*)\"$")
+	    public void verify_placeid_created_maps_to_something_using_something(String Expectedname, String resources) throws Throwable {
+	      
+	    	place_id=getJSpath(response, "place_id");
+	    	System.out.println(place_id);
+	    	 res=given().spec(requestSpecification()).queryParam("place_id", place_id);
+	    	 user_calls_something_with_something_http_request(resources, "GET");
+	    	 String Actualname=getJSpath(response, "name");
+	    	 System.out.println(Actualname);
+	    	 assertEquals(Actualname,Expectedname );
+	    }
+	    
+	    @Given("^DeletePlaceAPI payload$")
+	    public void deleteplaceapi_payload() throws Throwable {
+	    	 res=given().spec(requestSpecification()).body(ap.DeletePlaceAPI(place_id));
 	    }
 
 	}
