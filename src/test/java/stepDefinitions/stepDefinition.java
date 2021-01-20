@@ -77,6 +77,7 @@ public class stepDefinition extends Utils {
 	    	 user_calls_something_with_something_http_request(resources, "GET");
 	    	 String Actualname=getJSpath(response, "name");
 	    	 System.out.println(Actualname);
+	    	 System.out.println(Expectedname);
 	    	 assertEquals(Actualname,Expectedname );
 	    }
 	    
